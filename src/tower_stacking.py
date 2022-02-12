@@ -24,36 +24,52 @@ class tower_floor:
 class tower:
     def __init__(self,floor_structre:list):
         self.floor_structure = floor_structre
-    #todo implement tower validation
+
+
+    def multiples_of_floor_types(self,floor_type:floor_type)-> bool:
+        count = 0
+        for x in self.floor_structure:
+            if x.floor_type == floor_type:
+                count+=1
+        return count > 1
+
+
     def valid_tower(self) -> bool:
         if not ( self.floor_structure[0].floor_type == floor_type.door and self.floor_structure[len(self.floor_structure)-1] == floor_type.lookout):
             return False
+        elif  self.multiples_of_floor_types(floor_type.door) or self.multiples_of_floor_types(floor_type.lookout):
+            return False
+        for x in range(1,len(self.floor_structure)):
+            if self.floor_structure[x].width > self.floor_structure[x-1].width:
+                return False
 
-    #Todo implement tower score evaluation
+    def get_cost(self):
+        sum = 0
+        for x in self.floor_structure:
+            sum += x.cost
+        return sum
+
+    def score(self):
+        return 10 + len(self.floor_structure)**2 - self.get_cost()
+
     def evaluate(self) -> int:
-        pass
+        if not self.valid_tower():
+            return 0
+        elif True:
+            return self.score()
+
 
 
 class data_pool:
     def __init__(self,data:list):
-        self.doors = []
-        self.walls =[]
-        self.lookouts = []
-        for x in data:
-            if x.floor_type == floor_type.door:
-                self.doors.append(x)
-            elif x.floor_type == floor_type.wall:
-                self.walls.append(x)
-            elif x.floor_type == floor_type.lookout:
-                self.lookouts.append(x)
-
+        self.possible_floors
     def generate_random_tower(self):
         tower = []
-        bottom_floor = self.doors[random.randint(0,len(self.doors)-1)]
-        top_floor = self.lookouts[random.randint(0, len(self.doors)-1)]
-        tower_height = len(self.walls)-1
-
-
+        tower.append(self.doors[random.randint(0,len(self.doors)-1)])
+        tower_height = random.randint(0,len(self.walls)-1)
+        for x in range(tower_height):
+            tower.append(self.walls[random.randint(0,len(self.walls)-1)])
+        tower.append(self.lookouts[random.randint(0, len(self.doors) - 1)])
 
 
 
@@ -85,7 +101,6 @@ class tower_stacker_genetics():
         for x in range(self.population_cap):
             self.pool.append(self.options.generate_random_tower())
 
-    def scores(self):
 
 
 

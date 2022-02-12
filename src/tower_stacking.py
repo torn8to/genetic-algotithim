@@ -62,17 +62,14 @@ class tower:
 
 class data_pool:
     def __init__(self,data:list):
-        self.possible_floors
+        self.possible_floors = data
+
+
     def generate_random_tower(self):
         tower = []
-        tower.append(self.doors[random.randint(0,len(self.doors)-1)])
-        tower_height = random.randint(0,len(self.walls)-1)
+        tower_height = random.randint(2,len(self.possible_floors) -1)
         for x in range(tower_height):
-            tower.append(self.walls[random.randint(0,len(self.walls)-1)])
-        tower.append(self.lookouts[random.randint(0, len(self.doors) - 1)])
-
-
-
+            tower.append(self.possible_floors[random.randint(0,len(self.walls)-1)])
 
 
 class tower_stacker_genetics():
@@ -97,9 +94,16 @@ class tower_stacker_genetics():
 
     def  random_generation(self):
         self.pool = []
+        self.previous_iterations = []
         self.scores = []
         for x in range(self.population_cap):
             self.pool.append(self.options.generate_random_tower())
+
+
+
+
+
+
 
 
 

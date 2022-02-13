@@ -1,6 +1,8 @@
 import enum
 from enum import Enum
 import random
+from datetime import time,date,datetime
+
 
 class floor_type(Enum):
     door = 'Door'
@@ -39,6 +41,7 @@ class tower:
             if x.floor_type == floor_type:
                 count+=1
         return count > 1
+
     def repeat(self)-> bool:
         for x in range(len(self.floor_structure)):
             for y in range (len(self.floor_structure)):
@@ -54,10 +57,8 @@ class tower:
             self.floor_structure[mutated_level] = self.data_pool.select_random_floor()
             iteration += 1
 
-
-
     def valid_tower(self) -> bool:
-        if not ( self.floor_structure[0].floor_type == floor_type.door and self.floor_structure[len(self.floor_structure)-1] == floor_type.lookout):
+        if not ( self.floor_structure[0].floor_type == floor_type.door and self.floor_structure[len(self.floor_structure)-1].floor_type == floor_type.lookout):
             return False
         elif  self.multiples_of_floor_types(floor_type.door) or self.multiples_of_floor_types(floor_type.lookout):
             return False
@@ -97,10 +98,11 @@ class data_pool:
         return False
 
     def generate_random_tower(self):
-        tower = []
+        tow = []
         tower_height = random.randint(2,len(self.possible_floors) -1)
         for x in range(tower_height):
-            tower.append(self.possible_floors[random.randint(0,len(self.walls)-1)])
+            tow.append(self.possible_floors[random.randint(0,len(self.possible_floors)-1)])
+        return tower(tow)
 
 
 #TODO implement the culling methods
@@ -111,16 +113,16 @@ class culling_method(Enum):
 
 
 class tower_stacker_genetics():
-    def __init__(self,file:open, population = 10, ):
+    def __init__(self,file:open, population = 1000 ):
         self.options = data_pool(self.process_data(file))
         self.population_cap= population
-        self.all_scores
+        self.all_scores = []
         self.generation = 0
-        self.new_generation_method = self.top_half
 
 
-    def process_data(self,file)->list:
-        n1 = file.readline.split()
+
+    def process_data(self,file, elitism = False, culling = True)->list:
+        n1 = file.readline().split()
         floor_list = []
         while(len(n1) != 0):
             floor_type = n1[0]
@@ -128,7 +130,7 @@ class tower_stacker_genetics():
             strength = n1[2]
             cost = n1[3]
             floor_list.append(tower_floor(floor_type,width,strength,cost))
-            n1 = file.readline.split()
+            n1 = file.readline().split()
         return floor_list
 
 
@@ -142,10 +144,11 @@ class tower_stacker_genetics():
 
     def score_generation(self):
         for x in self.pool:
+            print(1)
             self.pool_scores.append(x.evaluate())
         zipped = zip(self.pool_scores,self.pool)
-        sorted_pairs = sorted(zipped)
-        tuples = zip(*sorted_pairs)
+        zipped.sort()
+        tuples = zip(sorted_pairs)
         self.pool_scores, self.pool = [list(tuple) for tuple in tuples]
         max = self.pool_scores[0]
         min = self.pool_scores[self.population_cap-1]
@@ -156,7 +159,7 @@ class tower_stacker_genetics():
 
     def crossover(self,first, second):
         max_cross_spot = len(second) - 2
-        if len(first) < len(second):
+        if len(first.floor) < len(second):
              max_cross_spot = len(first)
 
         cross_spot = random.randint(1,max_cross_spot)
@@ -166,17 +169,52 @@ class tower_stacker_genetics():
         return first , second
 
 
-    def create_new_generation(self, mutation_rate = 0.01):
+
+    def create_new_generation(self, mutation_rate = 0.05):
         current_max, current_min, current_median = self.score_generation()
         self.previous_scores.append([current_max,current_min,current_median])
         self. previous_generations.append(self.pool)
         new_generation = []
-        crossover_pool = self.pool[:int(self.population_cap/2)]
-        new_generation.append(self.pool[0])
-        new_generation.append(self.pool[1])
 
 
+        if self.elitism == True:
+            new_generation.append(self.pool[0])
+            new_generation.append(self.pool[1])
+        if self.culling == True:
+            crossover_pool = self.pool[:int(self.population_cap*.75)]
+        else :
+            crossover_pool = self.pool
+
+        while (new_generation < self.population_cap):
+            first_random_index = random.randint(0,len(crossover_pool))
+            second_random_index = random.randint(0,len(crossover_pool))
+            if second_random_index == first_random_index:
+                second_random_index +=1
+            if second_random_index == first_random_index and second_random_index >len(self.population_cap)-1:
+                second_random_index -=2
+            f = crossover_pool[first_random_index]
+            s = crossover_pool[second_random_index]
+            f,s = crossover_pool(f.floor_Structure,s.floor_structure)
+            new_generation.append(f)
+            new_generation.append(s)
+        self.pool = new_generation
+        self.pool_scores = new_generation
 
 
+    def run_for_n_time(self, max_run_time):
+        begin = datetime.now()
+        current_time = datetime.now()
+        self.random_generation()
+        while (current_time - begin).total_seconds() < 5.0:
+            self.create_new_generation()
+            current_time = datetime.now()
+        #TODO print a chart with median min and max data
+        #be able to export data to csv
+    #TODO Implement PDR creation
 
 
+if __name__ == "__main__":
+    f = open(r'C:\Users\nathan\PycharmProjects\genetic\genetic-algotithim\src\tower_example.txt',"r")
+    t = tower_stacker_genetics(f)
+    t.random_generation()
+    t.create_new_generation()

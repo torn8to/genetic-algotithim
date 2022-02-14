@@ -120,6 +120,7 @@ class data_pool:
 
     def generate_random_tower(self):
         tow = []
+        #len self.possible_floors
         tower_height = random.randint(2,len(self.possible_floors) -1)
         for x in range(tower_height):
             tow.append(self.possible_floors[random.randint(0,len(self.possible_floors)-1)])
@@ -130,13 +131,15 @@ class data_pool:
 
 
 class tower_stacker_genetics():
-    def __init__(self,file:open, population =750, elitism = True, culling = False):
+    def __init__(self,file:open, population = 2000, elitism = False, culling = False):
         self.options = data_pool(self.process_data(file))
         self.population_cap= population
         self.all_scores = []
         self.generation = 1
         self.elitism = elitism
         self.culling = culling
+        self.all_time_max_score = 0
+        self.all_time_max_tower = None
 
 
 
@@ -177,26 +180,37 @@ class tower_stacker_genetics():
 
 
     def crossover(self,first, second):
-        max_cross_spot = len(second) - 2
-        if len(first) < len(second):
-             max_cross_spot = len(first)
-        cross_spot = 1
-        if max_cross_spot == 1:
-            cross_spot = random.randint(1,max_cross_spot)
+        first_mutation_spot = random.randint(0,len(first.floor_structure)-1)
+        second_mutation_spot  = random.randint(0,len(second.floor_structure)-1)
+        first_mutated_floor = first.floor_structure[first_mutation_spot]
+        second_mutated_floor = second.floor_structure[second_mutation_spot]
 
-        placeholder = first[cross_spot:]
-        first[cross_spot:] = second[cross_spot:]
-        second[cross_spot:] = placeholder
-        return first , second
+        if not  first.contatined_in(second_mutated_floor) and not second.contatined_in(first_mutated_floor):
+            first.floor_structure[first_mutation_spot] = second_mutated_floor
+            second.floor_structure[second_mutation_spot] = first_mutated_floor
+        return first,second
 
 
 
-    def create_new_generation(self, mutation_rate = 0.001):
+    def create_new_generation(self, mutation_rate = 0.05):
         print(self.generation)
         current_max, current_min, current_median = self.score_generation()
+        max = self.pool[0]
+        if self.all_time_max_score <= current_max:
+            max = self.pool[0]
+            self.all_time_max_score = current_max
+            self.all_time_max_tower = max
+        if self.all_time_max_score > current_max and self.elitism == True:
+            current_max = self.all_time_max_score
+            max = self.all_time_max_tower
+            self.pool[20] = self.all_time_max_tower
+
+
+        second_max = self.pool[1]
         self.previous_scores.append([self.generation,current_max,current_min,current_median])
-        self. previous_generations.append(self.pool)
+        self.previous_generations.append(self.pool)
         new_generation = []
+
 
         pdr,pdr_max = self.pdr_generation(self.pool_scores)
 
@@ -205,41 +219,28 @@ class tower_stacker_genetics():
             crossover_pool = self.pool[:int(self.population_cap*.5)]
         else :
             crossover_pool = self.pool
-
+        new_generation.append(max)
+        new_generation.append(second_max)
         while(len(new_generation) < self.population_cap):
             first, second = pdr[random.randint(0,pdr_max-1)], pdr[random.randint(0,pdr_max-1)]
             f,s = crossover_pool[first],crossover_pool[second]
-            f.floor_structure,s.floor_structure = self.crossover(f.floor_structure,s.floor_structure)
+            f,s = self.crossover(f,s)
             new_generation.append(f)
             new_generation.append(s)
 
-        a = self.pool.pop(0)
-        a_score = a.evaluate()
-        print(a_score)
-        d = self.pool.pop(0)
-
-
-        ''' 
-        for x in new_generation:
-            mutation_limit = 1000 * mutation_rate
-
-            mutation_random = int(random.randint(0,1000))
+        for x in range(2,len(new_generation)):
+            mutation_limit = 100000 * mutation_rate
+            mutation_random = int(random.randint(0,100000))
             if  mutation_limit >  mutation_random:
                 print("mutation")
-                x.mutate(self.options)
-        '''
-
-        if self.elitism == True:
-            new_generation.append(a)
-            new_generation.append(d)
-            new_generation.pop(4)
-            new_generation.pop(5)
-            print(len(new_generation))
+                mutation_decider = random.randint(0,4)
+                if mutation_decider %2 == 0:
+                    new_generation[x] = self.options.generate_random_tower()
+                    pass
+                else:
+                    new_generation[x].mutate(self.options)
 
 
-
-
-        print(len(new_generation))
         self.pool = new_generation
         self.pool_scores = []
         self.generation+=1
@@ -259,7 +260,7 @@ class tower_stacker_genetics():
         for x in range(len(self.previous_scores)):
             if x<100:
                 generational_data.append(self.previous_scores[x])
-            elif x< 1000 and x % 10 == 1:
+            elif x< 1000 and x % 50 == 1:
                 generational_data.append(self.previous_scores[x])
 
         df = pd.DataFrame(generational_data,columns=['Generation','Max','Min','Median'])
@@ -276,10 +277,10 @@ class tower_stacker_genetics():
         for x in range(int(max)):
                 for y in range(self.pool_scores[x]+1):
                     pdr.append(x)
-        return pdr,len(pdr)-1
+        return pdr, len(pdr)-1
 
 if __name__ == "__main__":
     f = open(r'C:\Users\nathan\PycharmProjects\genetic\genetic-algotithim\src\tower_example.txt',"r")
     t = tower_stacker_genetics(f)
-    t.run_for_n_time(1.0)
+    t.run_for_n_time(5)
     t.export_to_csv()

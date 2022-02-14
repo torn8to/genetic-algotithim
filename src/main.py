@@ -3,8 +3,7 @@ from Gal import Gal
 from GalHelper import FileHelper
 from tower_stacking import tower_stacker_genetics
 from datetime import datetime
-def pick_algo():
-    pass
+
 
 
 if __name__ =='__main__':
@@ -20,7 +19,7 @@ if __name__ =='__main__':
         if float(sys.argv[1]) == 2:
             # file = open(sys.argv[2],'r')
             file = open(sys.argv[2], 'r')
-            t = tower_stacker_genetics(file)
+            t = tower_stacker_genetics(file,population=2000,elitism=True,culling = True)
             t.run_for_n_time(max_run_time)
             t.export_csv()
     else:

@@ -45,7 +45,7 @@ class Analyzer:
 
     def analyze(self):
         best_list = Toolbox.breakdown(self.best[1].gene)
-        print("Best Fitness: ", self.best[0], "at generation", self.best[2])
+        print("Best Fitness: ", self.best[0], "at generation", self.best[2], "Total Generations: ", self.current_generation)
         for thing in best_list:
             print(thing)
 

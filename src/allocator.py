@@ -1,4 +1,4 @@
-from src.GalHelper import Toolbox
+from GalHelper import Toolbox
 import numpy as np
 
 

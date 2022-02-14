@@ -1,6 +1,7 @@
 import sys
 from Gal import Gal
 from GalHelper import FileHelper
+from tower_stacking import tower_stacker_genetics
 from datetime import datetime
 def pick_algo():
     pass
@@ -16,6 +17,9 @@ if __name__ =='__main__':
             gal.iterator("Combo")
         if float(sys.argv[1]) == 2:
             # file = open(sys.argv[2],'r')
-            print("Not Done Yet")
+            file = open(sys.argv[2], 'r')
+            t = tower_stacker_genetics(file)
+            t.run_for_n_time(max_run_time)
+            t.export_csv()
     else:
         print('wrong number of arguments')

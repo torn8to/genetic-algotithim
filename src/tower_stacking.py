@@ -132,7 +132,7 @@ class data_pool:
 
 
 class tower_stacker_genetics():
-    def __init__(self,file:open, population = 1000, elitism = True, culling = True):
+    def __init__(self,file:open, population = 50, elitism = True, culling = True):
         self.options = data_pool(self.process_data(file))
         self.population_cap= population
         self.all_scores = []
@@ -204,7 +204,7 @@ class tower_stacker_genetics():
 
 
         if self.culling == True:
-            crossover_pool = self.pool[:int(self.population_cap*.5)]
+            crossover_pool = self.pool[:int(self.population_cap*9)]
         else :
             crossover_pool = self.pool
         print(100)
@@ -251,8 +251,6 @@ class tower_stacker_genetics():
             elif x< 1000 and x % 10 == 1:
                 generational_data.append(self.previous_scores[x])
 
-
-
         df = pd.DataFrame(generational_data,columns=['Generation','Max','Min','Median'])
         df.plot(x="Generation",y=["Max","Min","Median"])
         plt.show()
@@ -263,7 +261,7 @@ class tower_stacker_genetics():
         pdr = []
         max = self.population_cap
         if self.culling == True:
-            max = int(self.population_cap*.5)
+            max = int(self.population_cap*.9)
         for x in range(int(max)):
                 for y in range(self.pool_scores[x]+1):
                     pdr.append(x)
@@ -272,5 +270,5 @@ class tower_stacker_genetics():
 if __name__ == "__main__":
     f = open(r'C:\Users\nathan\PycharmProjects\genetic\genetic-algotithim\src\tower_example.txt',"r")
     t = tower_stacker_genetics(f)
-    t.run_for_n_time(5)
+    t.run_for_n_time(1)
     t.export_to_csv()

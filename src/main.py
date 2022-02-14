@@ -8,7 +8,9 @@ def pick_algo():
 
 
 if __name__ =='__main__':
-
+    # python main.py problem_num 'file' time_in_seconds
+    # prom_num = 1 runs algo for problem 1
+    # prob_num = 2 runs algo for problem 2
     if len(sys.argv) == 4:
         if float(sys.argv[1]) == 1:
             list_input = FileHelper.read_file(sys.argv[2])
